@@ -15,12 +15,17 @@
  * @preserve jQuery DateTimePicker
  * @homepage http://xdsoft.net/jqplugins/datetimepicker/
  * @author Chupurnov Valeriy (<chupurnov@gmail.com>)
+ *
+ * This is a modified version of the 2.5.21 version of datetimepicker. The changes are listed below.
+ *
+ * 1. Add options to leave an erroneous input so the user can see why it's formatted incorrectly, instead of resetting to current date.
+ * 2. Fix to clear time values when creating a date and seconds value when creating a time.
  */
 
 /**
  * @param {jQuery} $
  */
-var datetimepickerFactory = function ($) {
+(function ($) {
 	'use strict';
 
 	var default_options  = {
@@ -651,6 +656,8 @@ var datetimepickerFactory = function ($) {
 		enterLikeTab: true,
         showApplyButton: false,
         insideParent: false,
+
+		resetToCurrentDate: false  // PATCH #1: on invalid value, set date to current date
 	};
 
 	var dateHelper = null,
@@ -1336,7 +1343,7 @@ var datetimepickerFactory = function ($) {
 										$(this).val([splittedHours, splittedMinutes].map(function (item) {
 											return item > 9 ? item : '0' + item;
 										}).join(':'));
-									} else {
+									} else if (options.resetToCurrentDate) { // PATCH #1 leave an erroneous input so the user can see why it's formatted incorrectly
 										$(this).val(dateHelper.formatDate(_xdsoft_datetime.now(), options.format));
 									}
 								}
@@ -1398,6 +1405,21 @@ var datetimepickerFactory = function ($) {
 					var d = new Date(),
 						date,
 						time;
+
+					// PATCH #2 - The function now() is used as a way to get a starting date for this control.
+					// It is used in places where the current date is undefined or null.  This method starts
+					// with a new Date() and then modifies it below based on optional default date/times.
+					// The problem is that for a date only field, we start with the date being set to today with and then
+					// only apply a month, day and year to it.  So you end up with a mix of a selected date, but the time is
+					// the current time.  Same idea for cases where the timepicker is in play.  If you have a blank date,
+					// you will end up with a starting date of today with hours, minutes and seconds, but then we only
+					// set hours and minutes on it, so the seconds from TODAY are still set.
+					// We should be blanking out the times and/or seconds when setting up these defaults.
+					if (options.timepicker) {
+						d.setSeconds(0);
+					} else {
+						d.setHours(0, 0, 0, 0);
+					}
 
 					if (!norecursion && options.defaultDate) {
 						date = _this.strToDateTime(options.defaultDate);
@@ -1548,7 +1570,7 @@ var datetimepickerFactory = function ($) {
 					}
 
 					if (!_this.isValidDate(currentTime)) {
-						currentTime = _this.now();
+						currentTime = _this.now(true);  // PATCH #2.
 					}
 
 					return currentTime;
@@ -2445,8 +2467,8 @@ var datetimepickerFactory = function ($) {
 						val = this.value,
 						pos = this.selectionStart
 
-					    var valueBeforeCursor = val.substr(0, pos);
-					    var valueAfterPaste = val.substr(pos + pastedData.length);
+					    var valueBeforeCursor = val.slice(0, pos);
+					    var valueAfterPaste = val.slice(pos + pastedData.length);
 
 					    val = valueBeforeCursor + pastedData + valueAfterPaste;
 					    pos += pastedData.length;
@@ -2491,7 +2513,7 @@ var datetimepickerFactory = function ($) {
 						//   value char - keep incrementing position while on separator char and we still have room
 						//   del char   - keep decrementing position while on separator char and we still have room
 						while (true) {
-						  var maskValueAtCurPos = options.mask.substr(pos, 1);
+						  var maskValueAtCurPos = options.mask.slice(pos, pos+1);
 						  var posShorterThanMaskLength = pos < options.mask.length;
 						  var posGreaterThanZero = pos > 0;
 						  var notNumberOrPlaceholder = /[^0-9_]/;
@@ -2517,19 +2539,19 @@ var datetimepickerFactory = function ($) {
 
 						  // if we have a selection length we will wipe out entire selection and replace with default template for that range
 						  var defaultBlank = options.mask.replace(/[0-9]/g, '_');
-						  var defaultBlankSelectionReplacement = defaultBlank.substr(pos, selLength);
-						  var selReplacementRemainder = defaultBlankSelectionReplacement.substr(1) // might be empty
+						  var defaultBlankSelectionReplacement = defaultBlank.slice(pos, pos+selLength);
+						  var selReplacementRemainder = defaultBlankSelectionReplacement.slice(1) // might be empty
 
-						  var valueBeforeSel = val.substr(0, pos);
+						  var valueBeforeSel = val.slice(0, pos);
 						  var insertChars = digit + selReplacementRemainder;
-						  var charsAfterSelection = val.substr(pos + selLength);
+						  var charsAfterSelection = val.slice(pos + selLength);
 
 						  val = valueBeforeSel + insertChars + charsAfterSelection
 
 						} else {
-						  var valueBeforeCursor = val.substr(0, pos);
+						  var valueBeforeCursor = val.slice(0, pos);
 						  var insertChar = digit;
-						  var valueAfterNextChar = val.substr(pos + 1);
+						  var valueAfterNextChar = val.slice(pos + 1);
 
 						  val = valueBeforeCursor + insertChar + valueAfterNextChar
 						}
@@ -2548,7 +2570,7 @@ var datetimepickerFactory = function ($) {
 						// resume cursor location
 						pos += (key === BACKSPACE) ? 0 : 1;
 						// don't stop on a separator, continue whatever direction you were going
-						while (/[^0-9_]/.test(options.mask.substr(pos, 1)) && pos < options.mask.length && pos > 0) {
+						while (/[^0-9_]/.test(options.mask.slice(pos, pos+1)) && pos < options.mask.length && pos > 0) {
 						    pos += (key === BACKSPACE) ? 0 : 1;
 						}
 
@@ -2714,21 +2736,7 @@ var datetimepickerFactory = function ($) {
 		this.desc = desc;
 		this.style = style;
 	}
-};
-;(function (factory) {
-	if ( typeof define === 'function' && define.amd ) {
-		// AMD. Register as an anonymous module.
-		define(['jquery', 'jquery-mousewheel'], factory);
-	} else if (typeof exports === 'object') {
-		// Node/CommonJS style for Browserify
-		module.exports = factory(require('jquery'));;
-	} else {
-		// Browser globals
-		factory(jQuery);
-	}
-}(datetimepickerFactory));
-
-
+})(jQuery);
 
 /*!
  * jQuery Mousewheel 3.1.13

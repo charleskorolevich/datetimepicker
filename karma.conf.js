@@ -7,7 +7,7 @@ module.exports = function(config) {
             'node_modules/php-date-formatter/js/php-date-formatter.js',
             'jquery.js',
             'jquery.datetimepicker.js',
-            'tests/bootstrap.js',
+            'tests/tests/bootstrap.js',
             'tests/tests/*.js'
         ],
         reporters: ['progress'],
