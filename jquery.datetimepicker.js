@@ -1,5 +1,3 @@
-var DateFormatter = require("./node_modules/php-date-formatter/js/php-date-formatter.min.js");
-
 /**
  * @preserve jQuery DateTimePicker
  * @homepage http://xdsoft.net/jqplugins/datetimepicker/
