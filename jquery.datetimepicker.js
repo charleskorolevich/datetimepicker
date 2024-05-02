@@ -1,13 +1,20 @@
+var DateFormatter = require("./node_modules/php-date-formatter/js/php-date-formatter.min.js");
+
 /**
  * @preserve jQuery DateTimePicker
  * @homepage http://xdsoft.net/jqplugins/datetimepicker/
  * @author Chupurnov Valeriy (<chupurnov@gmail.com>)
+ *
+ * This is a modified version of the 2.5.21 version of datetimepicker. The changes are listed below.
+ *
+ * 1. Add options to leave an erroneous input so the user can see why it's formatted incorrectly, instead of resetting to current date.
+ * 2. Fix to clear time values when creating a date and seconds value when creating a time.
  */
 
 /**
  * @param {jQuery} $
  */
-var datetimepickerFactory = function ($) {
+(function ($) {
 	'use strict';
 
 	var default_options  = {
@@ -638,6 +645,8 @@ var datetimepickerFactory = function ($) {
 		enterLikeTab: true,
         showApplyButton: false,
         insideParent: false,
+
+		resetToCurrentDate: false  // PATCH #1: on invalid value, set date to current date
 	};
 
 	var dateHelper = null,
@@ -1323,7 +1332,7 @@ var datetimepickerFactory = function ($) {
 										$(this).val([splittedHours, splittedMinutes].map(function (item) {
 											return item > 9 ? item : '0' + item;
 										}).join(':'));
-									} else {
+									} else if (options.resetToCurrentDate) { // PATCH #1 leave an erroneous input so the user can see why it's formatted incorrectly
 										$(this).val(dateHelper.formatDate(_xdsoft_datetime.now(), options.format));
 									}
 								}
@@ -1385,6 +1394,21 @@ var datetimepickerFactory = function ($) {
 					var d = new Date(),
 						date,
 						time;
+
+					// PATCH #2 - The function now() is used as a way to get a starting date for this control.
+					// It is used in places where the current date is undefined or null.  This method starts
+					// with a new Date() and then modifies it below based on optional default date/times.
+					// The problem is that for a date only field, we start with the date being set to today with and then
+					// only apply a month, day and year to it.  So you end up with a mix of a selected date, but the time is
+					// the current time.  Same idea for cases where the timepicker is in play.  If you have a blank date,
+					// you will end up with a starting date of today with hours, minutes and seconds, but then we only
+					// set hours and minutes on it, so the seconds from TODAY are still set.
+					// We should be blanking out the times and/or seconds when setting up these defaults.
+					if (options.timepicker) {
+						d.setSeconds(0);
+					} else {
+						d.setHours(0, 0, 0, 0);
+					}
 
 					if (!norecursion && options.defaultDate) {
 						date = _this.strToDateTime(options.defaultDate);
@@ -1535,7 +1559,7 @@ var datetimepickerFactory = function ($) {
 					}
 
 					if (!_this.isValidDate(currentTime)) {
-						currentTime = _this.now();
+						currentTime = _this.now(true);  // PATCH #2.
 					}
 
 					return currentTime;
@@ -2701,18 +2725,4 @@ var datetimepickerFactory = function ($) {
 		this.desc = desc;
 		this.style = style;
 	}
-};
-;(function (factory) {
-	if ( typeof define === 'function' && define.amd ) {
-		// AMD. Register as an anonymous module.
-		define(['jquery', 'jquery-mousewheel'], factory);
-	} else if (typeof exports === 'object') {
-		// Node/CommonJS style for Browserify
-		module.exports = factory(require('jquery'));;
-	} else {
-		// Browser globals
-		factory(jQuery);
-	}
-}(datetimepickerFactory));
-
-
+})(jQuery);

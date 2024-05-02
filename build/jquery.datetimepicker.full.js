@@ -1,26 +1,20 @@
-/*!
- * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2014 - 2020
- * @version 1.3.6
- *
- * Date formatter utility library that allows formatting date/time variables or Date objects using PHP DateTime format.
- * This library is a standalone javascript library and does not depend on other libraries or plugins like jQuery. The
- * library also adds support for Universal Module Definition (UMD).
- * 
- * @see http://php.net/manual/en/function.date.php
- *
- * For more JQuery plugins visit http://plugins.krajee.com
- * For more Yii related demos visit http://demos.krajee.com
- */!function(t,e){"function"==typeof define&&define.amd?define([],e):"object"==typeof module&&module.exports?module.exports=e():t.DateFormatter=e()}("undefined"!=typeof self?self:this,function(){var t,e;return e={DAY:864e5,HOUR:3600,defaults:{dateSettings:{days:["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],daysShort:["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],months:["January","February","March","April","May","June","July","August","September","October","November","December"],monthsShort:["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],meridiem:["AM","PM"],ordinal:function(t){var e=t%10,n={1:"st",2:"nd",3:"rd"};return 1!==Math.floor(t%100/10)&&n[e]?n[e]:"th"}},separators:/[ \-+\/.:@]/g,validParts:/[dDjlNSwzWFmMntLoYyaABgGhHisueTIOPZcrU]/g,intParts:/[djwNzmnyYhHgGis]/g,tzParts:/\b(?:[PMCEA][SDP]T|(?:Pacific|Mountain|Central|Eastern|Atlantic) (?:Standard|Daylight|Prevailing) Time|(?:GMT|UTC)(?:[-+]\d{4})?)\b/g,tzClip:/[^-+\dA-Z]/g},getInt:function(t,e){return parseInt(t,e?e:10)},compare:function(t,e){return"string"==typeof t&&"string"==typeof e&&t.toLowerCase()===e.toLowerCase()},lpad:function(t,n,r){var a=t.toString();return r=r||"0",a.length<n?e.lpad(r+a,n):a},merge:function(t){var n,r;for(t=t||{},n=1;n<arguments.length;n++)if(r=arguments[n])for(var a in r)r.hasOwnProperty(a)&&("object"==typeof r[a]?e.merge(t[a],r[a]):t[a]=r[a]);return t},getIndex:function(t,e){for(var n=0;n<e.length;n++)if(e[n].toLowerCase()===t.toLowerCase())return n;return-1}},t=function(t){var n=this,r=e.merge(e.defaults,t);n.dateSettings=r.dateSettings,n.separators=r.separators,n.validParts=r.validParts,n.intParts=r.intParts,n.tzParts=r.tzParts,n.tzClip=r.tzClip},t.prototype={constructor:t,getMonth:function(t){var n,r=this;return n=e.getIndex(t,r.dateSettings.monthsShort)+1,0===n&&(n=e.getIndex(t,r.dateSettings.months)+1),n},parseDate:function(t,n){var r,a,u,i,o,s,c,f,l,d,g=this,h=!1,m=!1,p=g.dateSettings,y={date:null,year:null,month:null,day:null,hour:0,min:0,sec:0};if(!t)return null;if(t instanceof Date)return t;if("U"===n)return u=e.getInt(t),u?new Date(1e3*u):t;switch(typeof t){case"number":return new Date(t);case"string":break;default:return null}if(r=n.match(g.validParts),!r||0===r.length)throw new Error("Invalid date format definition.");for(u=r.length-1;u>=0;u--)"S"===r[u]&&r.splice(u,1);for(a=t.replace(g.separators,"\x00").split("\x00"),u=0;u<a.length;u++)switch(i=a[u],o=e.getInt(i),r[u]){case"y":case"Y":if(!o)return null;l=i.length,y.year=2===l?e.getInt((70>o?"20":"19")+i):o,h=!0;break;case"m":case"n":case"M":case"F":if(isNaN(o)){if(s=g.getMonth(i),!(s>0))return null;y.month=s}else{if(!(o>=1&&12>=o))return null;y.month=o}h=!0;break;case"d":case"j":if(!(o>=1&&31>=o))return null;y.day=o,h=!0;break;case"g":case"h":if(c=r.indexOf("a")>-1?r.indexOf("a"):r.indexOf("A")>-1?r.indexOf("A"):-1,d=a[c],-1!==c)f=e.compare(d,p.meridiem[0])?0:e.compare(d,p.meridiem[1])?12:-1,o>=1&&12>=o&&-1!==f?y.hour=o%12===0?f:o+f:o>=0&&23>=o&&(y.hour=o);else{if(!(o>=0&&23>=o))return null;y.hour=o}m=!0;break;case"G":case"H":if(!(o>=0&&23>=o))return null;y.hour=o,m=!0;break;case"i":if(!(o>=0&&59>=o))return null;y.min=o,m=!0;break;case"s":if(!(o>=0&&59>=o))return null;y.sec=o,m=!0}if(h===!0){var D=y.year||0,v=y.month?y.month-1:0,S=y.day||1;y.date=new Date(D,v,S,y.hour,y.min,y.sec,0)}else{if(m!==!0)return null;y.date=new Date(0,0,0,y.hour,y.min,y.sec,0)}return y.date},guessDate:function(t,n){if("string"!=typeof t)return t;var r,a,u,i,o,s,c=this,f=t.replace(c.separators,"\x00").split("\x00"),l=/^[djmn]/g,d=n.match(c.validParts),g=new Date,h=0;if(!l.test(d[0]))return t;for(u=0;u<f.length;u++){if(h=2,o=f[u],s=e.getInt(o.substr(0,2)),isNaN(s))return null;switch(u){case 0:"m"===d[0]||"n"===d[0]?g.setMonth(s-1):g.setDate(s);break;case 1:"m"===d[0]||"n"===d[0]?g.setDate(s):g.setMonth(s-1);break;case 2:if(a=g.getFullYear(),r=o.length,h=4>r?r:4,a=e.getInt(4>r?a.toString().substr(0,4-r)+o:o.substr(0,4)),!a)return null;g.setFullYear(a);break;case 3:g.setHours(s);break;case 4:g.setMinutes(s);break;case 5:g.setSeconds(s)}i=o.substr(h),i.length>0&&f.splice(u+1,0,i)}return g},parseFormat:function(t,n){var r,a=this,u=a.dateSettings,i=/\\?(.?)/gi,o=function(t,e){return r[t]?r[t]():e};return r={d:function(){return e.lpad(r.j(),2)},D:function(){return u.daysShort[r.w()]},j:function(){return n.getDate()},l:function(){return u.days[r.w()]},N:function(){return r.w()||7},w:function(){return n.getDay()},z:function(){var t=new Date(r.Y(),r.n()-1,r.j()),n=new Date(r.Y(),0,1);return Math.round((t-n)/e.DAY)},W:function(){var t=new Date(r.Y(),r.n()-1,r.j()-r.N()+3),n=new Date(t.getFullYear(),0,4);return e.lpad(1+Math.round((t-n)/e.DAY/7),2)},F:function(){return u.months[n.getMonth()]},m:function(){return e.lpad(r.n(),2)},M:function(){return u.monthsShort[n.getMonth()]},n:function(){return n.getMonth()+1},t:function(){return new Date(r.Y(),r.n(),0).getDate()},L:function(){var t=r.Y();return t%4===0&&t%100!==0||t%400===0?1:0},o:function(){var t=r.n(),e=r.W(),n=r.Y();return n+(12===t&&9>e?1:1===t&&e>9?-1:0)},Y:function(){return n.getFullYear()},y:function(){return r.Y().toString().slice(-2)},a:function(){return r.A().toLowerCase()},A:function(){var t=r.G()<12?0:1;return u.meridiem[t]},B:function(){var t=n.getUTCHours()*e.HOUR,r=60*n.getUTCMinutes(),a=n.getUTCSeconds();return e.lpad(Math.floor((t+r+a+e.HOUR)/86.4)%1e3,3)},g:function(){return r.G()%12||12},G:function(){return n.getHours()},h:function(){return e.lpad(r.g(),2)},H:function(){return e.lpad(r.G(),2)},i:function(){return e.lpad(n.getMinutes(),2)},s:function(){return e.lpad(n.getSeconds(),2)},u:function(){return e.lpad(1e3*n.getMilliseconds(),6)},e:function(){var t=/\((.*)\)/.exec(String(n))[1];return t||"Coordinated Universal Time"},I:function(){var t=new Date(r.Y(),0),e=Date.UTC(r.Y(),0),n=new Date(r.Y(),6),a=Date.UTC(r.Y(),6);return t-e!==n-a?1:0},O:function(){var t=n.getTimezoneOffset(),r=Math.abs(t);return(t>0?"-":"+")+e.lpad(100*Math.floor(r/60)+r%60,4)},P:function(){var t=r.O();return t.substr(0,3)+":"+t.substr(3,2)},T:function(){var t=(String(n).match(a.tzParts)||[""]).pop().replace(a.tzClip,"");return t||"UTC"},Z:function(){return 60*-n.getTimezoneOffset()},c:function(){return"Y-m-d\\TH:i:sP".replace(i,o)},r:function(){return"D, d M Y H:i:s O".replace(i,o)},U:function(){return n.getTime()/1e3||0}},o(t,t)},formatDate:function(t,n){var r,a,u,i,o,s=this,c="",f="\\";if("string"==typeof t&&(t=s.parseDate(t,n),!t))return null;if(t instanceof Date){for(u=n.length,r=0;u>r;r++)o=n.charAt(r),"S"!==o&&o!==f&&(r>0&&n.charAt(r-1)===f?c+=o:(i=s.parseFormat(o,t),r!==u-1&&s.intParts.test(o)&&"S"===n.charAt(r+1)&&(a=e.getInt(i)||0,i+=s.dateSettings.ordinal(a)),c+=i));return c}return""}},t});
+var DateFormatter = require("./node_modules/php-date-formatter/js/php-date-formatter.min.js");
+
 /**
  * @preserve jQuery DateTimePicker
  * @homepage http://xdsoft.net/jqplugins/datetimepicker/
  * @author Chupurnov Valeriy (<chupurnov@gmail.com>)
+ *
+ * This is a modified version of the 2.5.21 version of datetimepicker. The changes are listed below.
+ *
+ * 1. Add options to leave an erroneous input so the user can see why it's formatted incorrectly, instead of resetting to current date.
+ * 2. Fix to clear time values when creating a date and seconds value when creating a time.
  */
 
 /**
  * @param {jQuery} $
  */
-var datetimepickerFactory = function ($) {
+(function ($) {
 	'use strict';
 
 	var default_options  = {
@@ -651,6 +645,8 @@ var datetimepickerFactory = function ($) {
 		enterLikeTab: true,
         showApplyButton: false,
         insideParent: false,
+
+		resetToCurrentDate: false  // PATCH #1: on invalid value, set date to current date
 	};
 
 	var dateHelper = null,
@@ -1336,7 +1332,7 @@ var datetimepickerFactory = function ($) {
 										$(this).val([splittedHours, splittedMinutes].map(function (item) {
 											return item > 9 ? item : '0' + item;
 										}).join(':'));
-									} else {
+									} else if (options.resetToCurrentDate) { // PATCH #1 leave an erroneous input so the user can see why it's formatted incorrectly
 										$(this).val(dateHelper.formatDate(_xdsoft_datetime.now(), options.format));
 									}
 								}
@@ -1398,6 +1394,21 @@ var datetimepickerFactory = function ($) {
 					var d = new Date(),
 						date,
 						time;
+
+					// PATCH #2 - The function now() is used as a way to get a starting date for this control.
+					// It is used in places where the current date is undefined or null.  This method starts
+					// with a new Date() and then modifies it below based on optional default date/times.
+					// The problem is that for a date only field, we start with the date being set to today with and then
+					// only apply a month, day and year to it.  So you end up with a mix of a selected date, but the time is
+					// the current time.  Same idea for cases where the timepicker is in play.  If you have a blank date,
+					// you will end up with a starting date of today with hours, minutes and seconds, but then we only
+					// set hours and minutes on it, so the seconds from TODAY are still set.
+					// We should be blanking out the times and/or seconds when setting up these defaults.
+					if (options.timepicker) {
+						d.setSeconds(0);
+					} else {
+						d.setHours(0, 0, 0, 0);
+					}
 
 					if (!norecursion && options.defaultDate) {
 						date = _this.strToDateTime(options.defaultDate);
@@ -1548,7 +1559,7 @@ var datetimepickerFactory = function ($) {
 					}
 
 					if (!_this.isValidDate(currentTime)) {
-						currentTime = _this.now();
+						currentTime = _this.now(true);  // PATCH #2.
 					}
 
 					return currentTime;
@@ -2445,8 +2456,8 @@ var datetimepickerFactory = function ($) {
 						val = this.value,
 						pos = this.selectionStart
 
-					    var valueBeforeCursor = val.substr(0, pos);
-					    var valueAfterPaste = val.substr(pos + pastedData.length);
+					    var valueBeforeCursor = val.slice(0, pos);
+					    var valueAfterPaste = val.slice(pos + pastedData.length);
 
 					    val = valueBeforeCursor + pastedData + valueAfterPaste;
 					    pos += pastedData.length;
@@ -2491,7 +2502,7 @@ var datetimepickerFactory = function ($) {
 						//   value char - keep incrementing position while on separator char and we still have room
 						//   del char   - keep decrementing position while on separator char and we still have room
 						while (true) {
-						  var maskValueAtCurPos = options.mask.substr(pos, 1);
+						  var maskValueAtCurPos = options.mask.slice(pos, pos+1);
 						  var posShorterThanMaskLength = pos < options.mask.length;
 						  var posGreaterThanZero = pos > 0;
 						  var notNumberOrPlaceholder = /[^0-9_]/;
@@ -2517,19 +2528,19 @@ var datetimepickerFactory = function ($) {
 
 						  // if we have a selection length we will wipe out entire selection and replace with default template for that range
 						  var defaultBlank = options.mask.replace(/[0-9]/g, '_');
-						  var defaultBlankSelectionReplacement = defaultBlank.substr(pos, selLength);
-						  var selReplacementRemainder = defaultBlankSelectionReplacement.substr(1) // might be empty
+						  var defaultBlankSelectionReplacement = defaultBlank.slice(pos, pos+selLength);
+						  var selReplacementRemainder = defaultBlankSelectionReplacement.slice(1) // might be empty
 
-						  var valueBeforeSel = val.substr(0, pos);
+						  var valueBeforeSel = val.slice(0, pos);
 						  var insertChars = digit + selReplacementRemainder;
-						  var charsAfterSelection = val.substr(pos + selLength);
+						  var charsAfterSelection = val.slice(pos + selLength);
 
 						  val = valueBeforeSel + insertChars + charsAfterSelection
 
 						} else {
-						  var valueBeforeCursor = val.substr(0, pos);
+						  var valueBeforeCursor = val.slice(0, pos);
 						  var insertChar = digit;
-						  var valueAfterNextChar = val.substr(pos + 1);
+						  var valueAfterNextChar = val.slice(pos + 1);
 
 						  val = valueBeforeCursor + insertChar + valueAfterNextChar
 						}
@@ -2548,7 +2559,7 @@ var datetimepickerFactory = function ($) {
 						// resume cursor location
 						pos += (key === BACKSPACE) ? 0 : 1;
 						// don't stop on a separator, continue whatever direction you were going
-						while (/[^0-9_]/.test(options.mask.substr(pos, 1)) && pos < options.mask.length && pos > 0) {
+						while (/[^0-9_]/.test(options.mask.slice(pos, pos+1)) && pos < options.mask.length && pos > 0) {
 						    pos += (key === BACKSPACE) ? 0 : 1;
 						}
 
@@ -2714,21 +2725,7 @@ var datetimepickerFactory = function ($) {
 		this.desc = desc;
 		this.style = style;
 	}
-};
-;(function (factory) {
-	if ( typeof define === 'function' && define.amd ) {
-		// AMD. Register as an anonymous module.
-		define(['jquery', 'jquery-mousewheel'], factory);
-	} else if (typeof exports === 'object') {
-		// Node/CommonJS style for Browserify
-		module.exports = factory(require('jquery'));;
-	} else {
-		// Browser globals
-		factory(jQuery);
-	}
-}(datetimepickerFactory));
-
-
+})(jQuery);
 
 /*!
  * jQuery Mousewheel 3.1.13
